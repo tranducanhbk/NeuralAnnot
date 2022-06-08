@@ -11,10 +11,8 @@ import math
 import copy
 import torchvision.models as models
 #import vpose model
-from human_body_prior.tools.model_loader import load_model
-from human_body_prior.models.vposer_model import VPoser
-from human_body_prior.tools.omni_tools import copy2cpu as c2c
-from human_body_prior.body_model.body_model import BodyModel
+from vposer_model import VPoser
+
 
 
 class Model(nn.Module):
@@ -26,9 +24,7 @@ class Model(nn.Module):
             self.position_net = networks['position_net']
             self.rotation_net = networks['rotation_net']
             self.smpl_layer = copy.deepcopy(smpl.layer['neutral']).cuda()
-            self.vposer, _  = load_model(cfg.vposer_expr_dir, model_code=VPoser,
-                              remove_words_in_model_weights='vp_model.',
-                              disable_grad=False)
+            self.vposer = VPoser()
 
             self.vposer = self.vposer.to('cuda')
             self.trainable_modules = [self.backbone, self.position_net, self.rotation_net, self.vposer]
@@ -145,7 +141,8 @@ class Model(nn.Module):
             img_feat = self.forward_backbone(inputs, self.backbone)
             #smpl_root_pose, smpl_body_pose, smpl_shape, cam_trans = self.forward_rotation_net(img_feat, joint_img.detach(), self.rotation_net)
             smpl_root_pose, smpl_shape, cam_trans, vposer_para = self.forward_rotation_net(img_feat, self.rotation_net)
-            smpl_body_pose = self.vposer.decode(vposer_para)['pose_body'].contiguous().view(-1, 63)
+            decode_results =  self.vposer(vposer_para)
+            smpl_body_pose, latent_code = decode_results['pose_body'].contiguous().view(-1, 63), decode_results['poZ_body_mean'].contiguous().view(-1, 32)
             
             #body_trans_root = self.bm(pose_body=smpl_body_pose,  betas = smpl_shape,trans= cam_trans, root_orient= smpl_root_pose)
 
@@ -179,7 +176,7 @@ class Model(nn.Module):
                 #loss['joint_img'] = self.coord_loss(joint_img, smpl.reduce_joint_set(targets['joint_img'])/32., smpl.reduce_joint_set(meta_info['joint_trunc']), meta_info['is_3D'])
                 loss['joint_proj'] = self.coord_loss(joint_proj, targets['joint_img'][:,:,:2], meta_info['joint_trunc'])
                 loss['regularizer_shape'] = self.regular_loss(smpl_shape)
-                loss['regularizer_pose'] = self.regular_loss(vposer_para)
+                loss['regularizer_pose'] = self.regular_loss(latent_code)
                 #loss['regularizer'] = self.regular_loss(torch.cat((vposer_para,smpl_shape),1))
 
             elif cfg.parts == 'hand':

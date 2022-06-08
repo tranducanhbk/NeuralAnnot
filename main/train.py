@@ -69,11 +69,12 @@ def main():
             trainer.tot_timer.toc()
             trainer.tot_timer.tic()
             trainer.read_timer.tic()
-        trainer.save_model({
-            'epoch': epoch,
-            'network': trainer.model.state_dict(),
-            'optimizer': trainer.optimizer.state_dict(),
-        }, epoch)
+            if itr % 100 ==0:
+                trainer.save_model({
+                    'epoch': epoch,
+                    'network': trainer.model.state_dict(),
+                    'optimizer': trainer.optimizer.state_dict(),
+                }, epoch)
         
 
 if __name__ == "__main__":

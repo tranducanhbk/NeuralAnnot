@@ -37,7 +37,7 @@ class RotationNet(nn.Module):
             #self.root_pose_out = make_linear_layers([self.joint_num*(512+3), 6], relu_final=False)
             #self.pose_out = make_linear_layers([self.joint_num*(512+3), (smpl.orig_joint_num-3)*6], relu_final=False) # without root and two hands
             # predict 32 dismention for vposer
-            self.vposer_out = make_linear_layers([2048, 32], relu_final=False)
+            self.vposer_out = make_linear_layers([2048, 63], relu_final=False)
             # predict global rotaions of smpl 
             self.root_pose_out = make_linear_layers([2048, 3], relu_final=False)
             # predict shape parameters of smpl

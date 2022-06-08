@@ -26,5 +26,5 @@ class RegularizeLoss(nn.Module):
         super(RegularizeLoss, self).__init__()
 
     def forward(self, para):
-        loss = torch.pow(para,2) * 10.
+        loss = torch.pow(para,2)
         return loss
