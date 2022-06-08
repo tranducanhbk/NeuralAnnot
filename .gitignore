@@ -1,0 +1,5 @@
+data/MSCOCO/annotations/
+data/MSCOCO/images/train2017
+common/utils/human_model_files
+common/nets/body_model
+output/model_dump
